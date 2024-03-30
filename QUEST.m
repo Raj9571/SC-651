@@ -15,6 +15,7 @@ V=V_t';
 W=W_t';
 
 a=1/6;
+
 V_norm=zeros(3,6);
 for i=1:6
     V_norm(:,i)=V(:,i)/norm(V(:,i));
@@ -23,60 +24,66 @@ W_norm=zeros(3,6);
 for i=1:6
     W_norm(:,i)=W(:,i)/norm(W(:,i));
 end
+% All vectors are unit vectors now
 V=V_norm;
 W=W_norm;
+
+
 B=a*W*V';
 sigma=trace(B);
 S=B+B';
+
 Z=zeros(3,1);
 for i=1:6
 Z=Z+a*cross(W(:,i),V(:,i));
 end
 
+%parameters for biquadratic polynomial
 k=trace(adjoint(S));
 delta=det(S);
 a=sigma^2-k;
 d=Z'*S*S*Z;
 c=delta+Z'*S*Z;
 b=sigma^2+Z'*Z;
-syms x;
-f=x^4-(a+b)*x^2-c*x+(a*b+c*sigma-d);
 
+syms x;
+f=x^4-(a+b)*x^2-c*x+(a*b+c*sigma-d);%lamda calculated using root of biquadratic polynomial
 g=diff(f);
+
 epsilon=10^(-5);
-guess=1;
+guess=1; %initital values for newton raphson method
 lambda=New_Raph(f,g,epsilon,guess);
 
  omega = lambda;
  alpha = omega^2 - sigma^2 + k;
+ beta = omega - sigma;
+ gamma = (omega + sigma) * alpha - delta;
 
-    beta = omega - sigma;
-    gamma = (omega + sigma) * alpha - delta;
+ % (Eqn.68) Compute X vector 
+ X = (alpha * eye(3) + beta * S + S^2) * Z;
 
-    % (Eqn.68) Compute X vector 
-    X = (alpha * eye(3) + beta * S + S^2) * Z;
+ % Compute the optimal quaternion (Eqn.69)
+ q = [X; gamma] ./ sqrt(gamma^2 + norm(X)^2);
 
-    % Compute the optimal quaternion (Eqn.69)
-    q = [X; gamma] ./ sqrt(gamma^2 + norm(X)^2);
-
-    % Convert the optimal quaternion to DCM
-    % standard method
-    q0 = q(4);
-    q1 = q(1);
-    q2 = q(2);
-    q3 = q(3);
+ 
+ q0 = q(4);
+ q1 = q(1);
+ q2 = q(2);
+ q3 = q(3);
+  %quaternion to rotation matrix  
  A=zeros(3,3);
  A(1,1) = q0^2 + q1^2 - q2^2 - q3^2;
-    A(1,2) = 2*(q1*q2 + q0*q3);
-    A(1,3) = 2*(q1*q3 - q0*q2);
-    A(2,1) = 2*(q1*q2 - q0*q3);
-    A(2,2) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
-    A(2,3) = 2*(q2*q3 + q0*q1);
-    A(3,1) = 2*(q1*q3 + q0*q2);
-    A(3,2) = 2*(q2*q3 - q0*q1);
-    A(3,3) = q0^2 - q1^2 - q2^2 + q3^2;
+ A(1,2) = 2*(q1*q2 + q0*q3);
+ A(1,3) = 2*(q1*q3 - q0*q2);
+ A(2,1) = 2*(q1*q2 - q0*q3);
+ A(2,2) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+ A(2,3) = 2*(q2*q3 + q0*q1);
+ A(3,1) = 2*(q1*q3 + q0*q2);
+ A(3,2) = 2*(q2*q3 - q0*q1);
+ A(3,3) = q0^2 - q1^2 - q2^2 + q3^2;
 
 loss=0;
+%total squared errot for normed vectors
 for i=1:6
 loss=loss+norm(W(:,i)-A*V(:,i))^2;
 end

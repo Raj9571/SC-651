@@ -14,7 +14,7 @@ W_t=[0.17, 0.03, 0.50;
 V=V_t';
 W=W_t';
 
-V_norm=zeros(3,6);
+ V_norm=zeros(3,6);
 for i=1:6
     V_norm(:,i)=V(:,i)/norm(V(:,i));
 end
@@ -22,8 +22,10 @@ W_norm=zeros(3,6);
 for i=1:6
     W_norm(:,i)=W(:,i)/norm(W(:,i));
 end
+% All vectors are unit vectors now
 V=V_norm;
 W=W_norm;
+
 A=V*W';
 [U,S,Z]=svd(A);%there is no direct way to compute polar decompostion in matlab
 % so we will use SVD to compute it
@@ -41,8 +43,10 @@ end
  W_pred=M*V;
 
 loss=0;
+%total squared error
 for i=1:6
     loss=loss+norm(W(:,i)-M*V(:,i))^2;
 end
+
 M
 loss_whaba=loss

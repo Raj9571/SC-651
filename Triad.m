@@ -22,10 +22,9 @@ W_norm=zeros(3,6);
 for i=1:6
     W_norm(:,i)=W(:,i)/norm(W(:,i));
 end
+% All vectors are unit vectors now
 V=V_norm;
 W=W_norm;
-
-
 
 v1=[0.63, 0.45, 0.87];
 v2=[0.03, 0.40, 0.86];
@@ -54,5 +53,6 @@ loss=0;
 for i=1:6
 loss=loss+norm(W(:,i)-A*V(:,i))^2;
 end
+
 A
 MSE_triad=loss
